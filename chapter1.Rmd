@@ -5,6 +5,6 @@ This is my page for Introduction to Open Data Science course. Feeling super exci
 
 I checked the R for Health Data Science -book and the excercise set 1. These seemed like a great crash course.  The book most def goes to my list of useful R-sources.
 
-Link to my page: [click!](https://hurmris.github.io/IODS-project/) 
+Link to my repository: [click!](https://github.com/hurmris/IODS-project) 
 
 
