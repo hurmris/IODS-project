@@ -1,7 +1,7 @@
 
 # About the project
 
-This is my page for Introduction to Open Data Science course. Feeling super exited about the course. I am especially interested in learning how to use Git in R. Earlier I have been using only TortoiseGit with SAS. I have done earlier done few R courses in DataCamp and used many online "cookbooks".
+This is my page for Introduction to Open Data Science course. Feeling super excited about the course. I am especially interested in learning how to use Git in R. Earlier I have been using only TortoiseGit with SAS. I have done earlier done few R courses in DataCamp and used many online "cookbooks".
 
 I checked the R for Health Data Science -book and the excercise set 1. These seemed like a great crash course.  The book most def goes to my list of useful R-sources.
 
