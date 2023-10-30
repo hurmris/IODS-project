@@ -1,13 +1,10 @@
 
 # About the project
 
-*Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
+This is my page for Introduction to Open Data Science course. Feeling super exited about the course. I am especially interested in learning how to use Git in R. Earlier I have been using only TortoiseGit with SAS. I have done earlier done few R courses in DataCamp and used many online "cookbooks".
 
-```{r}
-# This is a so-called "R chunk" where you can write R code.
+I checked the R for Health Data Science -book and the excercise set 1. These seemed like a great crash course.  The book most def goes to my list of useful R-sources.
 
-date()
+Link to my page: [click!](https://hurmris.github.io/IODS-project/) 
 
-```
-The text continues here.
 
