@@ -1,5 +1,5 @@
 #Author: RistoH
-#Date:Nov.3.2023
+#Date: Nov.3.2023
 #Description: This script takes the learning data, wrangles is and saves!
 
 #Required packages
