@@ -1,13 +1,116 @@
-# Insert chapter 2 title here
+# 2. Regression and model validation
 
-*Describe the work you have done this week and summarize your learning.*
-
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
-
-```{r}
-date()
+```{r, warning=FALSE}
+library(tidyverse)
+library(sandwich)
+library(lmtest)
 ```
 
-Here we go again...
+## Read the data
+
+```{r}
+analysis_data <- read_csv("data/learning2014.csv")
+
+
+str(analysis_data)
+
+```
+
+Data set includes survey data from students, source Kimmo Vehkalahti, extra info [here](https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt)
+
+-   Attitude is a sum of 10 questions related to students attitude towards statistics, each measured on the Likert scale (1-5)
+-   deep is a mean of 11 questions related to deep learning
+-   stra is a mean of 8 questions related to strategic learning
+-   surf is a mean of 10 questions related to surface learning - points are exam point (observations with points equal to zero are dropped)
+
+## Graphical overview:
+
+```{r}
+
+data_long <- analysis_data %>% select(attitude,deep,stra,surf) %>% 
+  pivot_longer(everything(), names_to = "Variable")
+
+ggplot(data_long, aes(x = Variable, y = value)) +
+  geom_boxplot() +
+  labs(title = "Figure 1: Distribution for four questions categories",
+       x = "Question category",
+       y = "Value") +
+  theme_minimal()
+
+
+```
+
+Figure one plots the distributions of attitude, deep, stra and surf questions. Median value varies across roughly 2.75 to 3.75. Only deep and surf categories have some outlier observations.
+
+```{r}
+ggplot(data=analysis_data,aes(x=Age, fill=gender))+
+  geom_histogram(bins = 20) +
+  labs(title = "Figure 2: Age Distribution by Gender", x = "Age", y = "Frequency") +
+  theme_minimal()
+
+```
+
+Figure 2 plots age distribution of participants. Around 50 percent of participants are around 20 yrs old. Most participants females and some outliers, mainly men.
+
+```{r}
+ggplot(analysis_data, aes(x = gender, y = Points)) +
+  geom_boxplot()+
+  theme_minimal()+
+  labs(title = "Figure 3: Points distribution by Gender", x = "Gender", y = "Points") 
+```
+
+Figure show the distribution of points by gender. Based on this it seems that the points are distributed quite similarly acrross to gender types in the data.
+
+## Regression model
+
+```{r}
+#Run model
+lm1 <- lm(formula= Points ~ attitude + deep  + Age  + surf, data=analysis_data)
+summary(lm1)
+
+```
+
+Based on outputs above one can conclude that only statistically significant coefficient in the specification is attitude (assuming homoskedastic errors!). On average one-unit increase in the scale of attitude increases points by roughly 3.5. 
+
+-  t-value tests whether the coefficient is statistically significantly different from zero
+-  F-statistics tests whether all of the coefficient are different from zero (jointly)
+
+```{r}
+lm2 <- lm(formula= Points ~ attitude, data=analysis_data)
+summary(lm2)
+
+```
+
+After excluding non-significant variables we see that is still aroung 3.5. Multiple R-squared measures the proportion of variance in the dependent variable that can be explained by the predictor variables in the model. It ranges from 0 to 1, with higher values indicating a better fit. In the output above we see that this is 0.1906 so around 20 percent. 
+
+## Diagnostic plots
+
+```{r}
+# Residuals vs Fitted values
+plot(lm2, which = 1,caption = "Figure 3: Residuals vs fitted")
+```
+
+```{r}
+qqnorm(lm2$residuals)
+qqline(lm2$residuals)
+```
+
+```{r}
+plot(lm2, which = 5)
+
+```
+
+Model assumptions:
+
+1. Linear relationship between predictors and outcome
+2. Independence of residuals
+3. Normal distribution of residuals
+4. Equal variance of residuals
+
+Validity of our assumptions:
+
+-  Based on Figure 3. the assumption on linear relationship could seem plausible
+- Based on Q-Q plot we see that residuals are diverging from the line, which suggest that errors are not normally distributed
+- Based on Figure 3. the assumption on equal variance seems plausible, no clear patterns that suggested otherwise.
+
+
