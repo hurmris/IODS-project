@@ -1,4 +1,4 @@
-# Logistic regression
+# 3. Logistic regression
 
 
 ```{r,echo=FALSE,warning=FALSE}
