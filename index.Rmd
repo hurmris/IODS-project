@@ -5,10 +5,13 @@ output:
   html_document:
     theme: cosmo
     toc: true
-    toc_depth: 2
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
     fig_caption: true
     fig_width: 6
     fig_height: 4
+  
 ---
 
 ***
