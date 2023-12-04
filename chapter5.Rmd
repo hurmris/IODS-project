@@ -1,0 +1,141 @@
+# 5.Dimensionality reduction techniques
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+
+```{r, echo=FALSE, warning=FALSE}
+library(reshape2)
+library(tidyverse)
+library(tibble)
+library(GGally)
+library(FactoMineR)
+```
+
+## Data summary
+
+```{r}
+#Read data
+human <- readr::read_csv("data/human.csv")
+# Move the country names to rownames
+human_ <- column_to_rownames(human, "Country")
+
+# Graphical overview
+GGally::ggpairs(human_, mapping = aes(), lower = list(combo = wrap("facethist", bins = 20)))
+
+```
+
+Above plot describes the pairwise relationships between the variables in the human data set. Few picks from the picture:
+
+- **Female secondary education** is highly correlated with life expectancy, expected years of educations, maternal mortality and Adolescent Birth Rate
+- **Female labor participation** is mostly correlated with maternal mortality and parliamentary representation
+- **Life Expectancy at Birth**: is highly correlated all variables except parliamentary representation and female labor participation.
+- **Expected Years of Education**: is highly correlated with all except female labor market participation
+- **GNI**: is suprisingly not correlated with female labor market participation that much.
+- **Maternal mortality**: again parliamentary participation does not seem to correlate with this
+- **Adolescent Birth Rate**: Highly negatively correlated with all other variables except female labor market participation and maternal mortality, which is positively correlated. 
+
+
+
+```{r}
+  
+# Summary
+skimr::skim(human)
+
+```
+
+From the above we see the distributions of our variable. To summarize briefly we can see that the distributions of 
+
+- GNI,Ado.Birth and Mat.Mor are skewed towards left and have smaller mass on the right-tail
+- Parli.F,Life.Exp, Edu.Exp are skewed towards right and have smaller mass on the left-tail
+- Labo.FM and Edu2.FM are rougly speaking uniformly distributed
+
+
+## Principal Component Analysis (PCA)
+
+### Non-standardized variables
+```{r}
+#First using non-standardised human data
+
+# Run PCA
+pca_human <- prcomp(human_)
+
+#Variability:
+# create and print out a summary of pca_human
+s <- summary(pca_human)
+
+# rounded percentanges of variance captured by each PC
+round(1*s$importance[2, ], digits = 5)
+
+# a biplot of the PC representation and the original variables
+biplot(pca_human, choices = 1:2)
+
+title("Biplot of PCA Results for non-standardized variables")
+
+```
+
+**Explanation**: 
+
+- PC1 represents the direction in the data space along which the data varies the most
+- In a biplot, the length of the red arrows for explanatory variables indicates the strength of their contribution to PC1. Longer arrows suggest a stronger influence on PC1.
+- The signs of the coefficients of the variables (direction of the arrows) indicate the direction of the variable's contribution to PC1. A positive coefficient means an increase in that variable is associated with an increase in PC1.
+- PC2 represents the second most significant direction of variation in the data, orthogonal to PC1
+- The length and direction of the red arrows for explanatory variables on PC2 convey their contribution to PC2. Longer arrows again suggest a stronger influence.
+- The signs of the coefficients indicate the direction of the variable's contribution to PC2.
+- Points in the biplot represent individual observations that are the countries
+
+### Standardized variables
+
+```{r}
+# standardize the variables
+human_std <- scale(human_)
+
+# Run PCA
+pca_human_std <- prcomp(human_std)
+
+#Variability:
+# create and print out a summary of pca_human
+std <- summary(pca_human_std)
+
+# rounded percentanges of variance captured by each PC
+round(1*std$importance[2, ], digits = 5)
+
+# a biplot of the PC representation and the original variables
+biplot(pca_human_std, cex = c(0.9, 1), choices = 1:2)
+
+# Add a main title
+title("Biplot of PCA Results for standardized variables")
+
+
+
+```
+
+The vectors of variances and plots clearly show that PCA provides different results after we standardize the variables. This is because standardization allows that human development index accounts all variables with equal weight. With non-standardised data we see that PC1 (latent human development) is drive only by GNI. Naturally, this is not the best indicator from Human Developmen.
+
+### Personal interpretation
+The first component of this principal component analysis PC1 captures essentially the latent (not measurable directly) concept of human development. It effectively reduces the 8 dimensions we use to one-dimensional measure that we can apply to compare the human development in the countries.  
+
+From the picture we see that PC1 is heavily influenced by Maternal labor force participation, Adolescent Birth Rate, Educational expecationas, GNI, Life expectancy and female secondary education. Parliamentary representation and female labor participation however do not correlate that much with PC1. The picture suggest that PC1 (or HDI) is higher in countries with high educational expectation, GNI, Life Expectancy and female secondary stage education. Similarly it is smaller in those countries with high maternal mortality and Adolescent Birth Rate.
+
+PC2 represents the second most significant direction of variation in the data. This is mainly driven by parliamentary representation and female labor market participation (both positively).
+
+## Multiple Correspondenc Analysis (MCA)
+
+### Data summary
+```{r}
+tea <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv", stringsAsFactors = TRUE)
+
+str(tea)
+dim(tea)
+View(tea)
+
+GGally::ggpairs(team %>% 
+                  select(), mapping = aes(), lower = list(combo = wrap("facethist", bins = 20)))
+
+```
+
+
+
+
+

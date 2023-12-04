@@ -65,7 +65,9 @@ human <- human %>%
                          "Sub-Saharan Africa",
                          "World")))
   
+#Write over the existing file: 
 
+readr::write_csv(x = human,file = "data/human.csv")
 
 
 
