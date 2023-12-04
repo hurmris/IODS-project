@@ -1,4 +1,6 @@
 library(readr)
+library(tidyverse)
+
 hd <- read_csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/human_development.csv")
 gii <- read_csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/gender_inequality.csv", na = "..")
 
@@ -38,6 +40,41 @@ human <- human %>%
          Labo.FM = Labo.F / Labo.M)
 
 # Save
-
 readr::write_csv(x = human,file = "data/human.csv")
+
+# Read 
+human <- readr::read_csv("data/human.csv")
+ 
+# Explore structure:
+str(human)
+
+#Dataset originates from the United Nations Development Programme. 
+# Full description of the data set can be found here: https://hdr.undp.org/system/files/documents/technical-notes-calculating-human-development-indices.pdf
+#Variables are renamed as already showed above
+
+# Exclude unneeded variables:
+
+human <- human %>% 
+  select("Country", "Edu2.FM", "Labo.FM", "Edu.Exp", "Life.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F") %>% 
+  na.omit() %>% 
+  filter(!(Country %in% c("Arab States",
+                         "East Asia and the Pacific",
+                         "Europe and Central Asia",
+                         "Latin America and the Caribbean",
+                         "South Asia",
+                         "Sub-Saharan Africa",
+                         "World")))
+  
+
+
+
+
+
+
+
+
+
+
+
+
 
