@@ -1,9 +1,5 @@
 # 5.Dimensionality reduction techniques
 
-```{r setup, include=FALSE} 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
-```
-
 
 ```{r, echo=FALSE, warning=FALSE}
 library(reshape2)
@@ -122,19 +118,78 @@ PC2 represents the second most significant direction of variation in the data. T
 
 ## Multiple Correspondenc Analysis (MCA)
 
+Focusing only the variable describing feelings and attitudes 
 ### Data summary
 ```{r}
-tea <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv", stringsAsFactors = TRUE)
+tea <- utils::read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv", stringsAsFactors = TRUE)
+
+tea <- tea[25:30]
 
 str(tea)
 dim(tea)
-View(tea)
 
-GGally::ggpairs(team %>% 
-                  select(), mapping = aes(), lower = list(combo = wrap("facethist", bins = 20)))
+```
+Distributions of the variables below:
+
+```{r}
+ggplot(tea, aes(x = escape.exoticism )) +
+      geom_bar(fill = "skyblue", bins = 30) +
+      labs(title = "Distribution of escape exotism") +
+      theme_minimal()
+```
+
+```{r}
+ggplot(tea, aes(x = spirituality )) +
+      geom_bar(fill = "skyblue", bins = 30) +
+      labs(title = "Distribution of spirituality") +
+      theme_minimal()
+```
+
+```{r}
+ggplot(tea, aes(x = healthy )) +
+      geom_bar(fill = "skyblue", bins = 30) +
+      labs(title = "Distribution of healthy") +
+      theme_minimal()
+```
+
+```{r}
+ggplot(tea, aes(x = diuretic )) +
+      geom_bar(fill = "skyblue", bins = 30) +
+      labs(title = "Distribution of diuretic") +
+      theme_minimal()
+```
+```{r}
+ggplot(tea, aes(x = friendliness)) +
+      geom_bar(fill = "pink", bins = 30) +
+      labs(title = "Distribution of friendliness") +
+      theme_minimal()
 
 ```
 
+
+```{r}
+ggplot(tea, aes(x = iron.absorption)) +
+      geom_bar(fill = "pink", bins = 30) +
+      labs(title = "Distribution of iron.absorption") +
+      theme_minimal()
+```
+
+
+```{r}
+#Run the model
+mca <- MCA(tea, graph = FALSE)
+
+# summary of the model
+summary(mca)
+
+# visualize MCA
+plot(mca, invisible=c("ind"), graph.type = "classic")
+```
+
+
+From the output above we see that dimension 1 is mainly driven by healthy and diuretic. In dimension 2 escape exoticism. In dimension 3 the spirituality and iron absorption are the main drivers.
+
+Figure shows that attributes healthy and non-iron-absorption go hand in hand (they are close to each other) and affect both dim 1 and dim 2 negatively. Other observations are that iron absortion is negatively correlated with dim 1 but negatively with dim 2. 
 
 
 
