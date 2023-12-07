@@ -1,0 +1,78 @@
+# 6. Analysis of longitudinal data
+```{r}
+library(tidyverse)
+RATSL <- readRDS("~/Desktop/Introduction to Open Data Science/IODS-project/data/rats.rds")
+  
+```
+
+
+# Part I: Studying the RATS data set
+In this part I implement the analyses of Chapter 8 of MABS for the RATS data set.
+
+# Graphical inspection
+
+Start first with the non-standardized data: 
+
+```{r}
+ggplot(RATSL, aes(x = Time, y = Weight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  labs(title="Weight of rats by diet group")+
+  scale_y_continuous(limits = c(min(RATSL$Weight), max(RATSL$Weight))) +
+  theme_minimal()
+
+```
+The plot above suggest that there is clear tracking occuring, meaning that those rats weight most at the end of the last period who weighted more in the early periods. To see this more clearly lets repeat the plot using standardized values. 
+
+
+```{r}
+#Standardise the weight
+ratsls <- RATSL %>% 
+  group_by(Time) %>%
+  mutate( stdweight = (Weight - mean(Weight))/sd(Weight)) %>%
+  ungroup()
+
+ggplot(ratsls, aes(x = Time, y = stdweight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  labs(title="Weight of rats by diet group", y="Standardised weight")+
+  scale_y_continuous(limits = c(min(ratsls$stdweight), max(ratsls$stdweight))) +
+  theme_minimal()
+
+
+```
+
+
+Lets then look at the means of each diet group in a box plot:
+
+```{r}
+
+# Summary data with mean and standard error of bprs by diet and week 
+RATSLS <- RATSL %>%
+  group_by(Group, Time) %>%
+  summarise( mean = mean(Weight), se = mean(Weight) ) %>%
+  ungroup()
+
+
+# Plot the mean profiles
+ggplot(RATSLS, aes(x = Time, y = mean, linetype = Group, shape = Group)) +
+  geom_line() +
+  scale_linetype_manual(values = c(1,2,3)) +
+  geom_point(size=3) +
+  scale_shape_manual(values = c(1,2,3)) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, linetype="1"), width=0.3) +
+  theme(legend.position = c(0.8,0.8)) +
+  scale_y_continuous(name = "mean(Weight) +/- se(weight)")+
+  theme_minimal()
+```
+The plot above describes the average weight (and sd) of rat by group. Clearly there are differences in the point group means but this is not sufficient evidence that different diets lead to significant differences in weights as the sd are so large. Lets then check whether there is outliers using box-plots:
+
+```{r}
+
+```
+
+

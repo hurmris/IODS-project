@@ -30,7 +30,7 @@ summary(RATSL)
 # RATSL is now longer format version of RATS. We convert it to panel format in order to use it in longitudial analysis.
 
 #Save:
-readr::write_csv(RATSL,"data/rats.csv")
+write_rds(RATSL,"data/rats.rds")
 
 # BPRS ----
 # The task here is very similar to above.
@@ -57,5 +57,5 @@ BPRSL <-  BPRSL %>% mutate(week = as.integer(substr(weeks,5,5)))
 glimpse(BPRSL)
 
 #Save
-readr::write_csv(BPRSL,"data/bprs.csv")
+readr::write_rds(BPRSL,"data/bprs.rds")
 
