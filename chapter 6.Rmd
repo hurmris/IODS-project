@@ -1,0 +1,237 @@
+# 6. Analysis of longitudinal data
+
+```{r}
+#Read the data
+library(tidyverse)
+RATS <- read.table("https://raw.githubusercontent.com/KimmoVehkalahti/MABS/master/Examples/data/rats.txt", header = TRUE, sep = '\t')
+RATSL <- readRDS("~/Desktop/Introduction to Open Data Science/IODS-project/data/rats.rds")
+  
+```
+
+
+## Part I: RATS - Rats with different diets
+In this part I implement the analyses of Chapter 8 of MABS for the RATS data set.
+
+### Weights
+
+Start first with the non-standardized data: 
+
+```{r}
+ggplot(RATSL, aes(x = Time, y = Weight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  labs(title="Weight of rats by diet group")+
+  scale_y_continuous(limits = c(min(RATSL$Weight), max(RATSL$Weight))) +
+  theme_minimal()
+
+```
+
+The plot above suggest that there is clear tracking occuring, meaning that those rats weight most at the end of the last period who weighted more in the early periods. To see this more clearly lets repeat the plot using standardized values. 
+
+
+```{r}
+#Standardise the weight
+RATSL <- RATSL %>% 
+  group_by(Time) %>%
+  mutate( stdweight = (Weight - mean(Weight))/sd(Weight)) %>%
+  ungroup()
+
+ggplot(RATSL, aes(x = Time, y = stdweight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  labs(title="Weight of rats by diet group", y="Standardised weight")+
+  scale_y_continuous(limits = c(min(RATSL$stdweight), max(RATSL$stdweight))) +
+  theme_minimal()
+
+
+```
+
+### Group means
+Lets then look at the means of each diet group in a box plot:
+
+```{r}
+
+# Summary data with mean and standard error of bprs by diet and week 
+RATSS <- RATSL %>%
+  group_by(Group, Time) %>%
+  summarise( mean = mean(Weight), se = mean(Weight) ) %>%
+  ungroup()
+
+
+# Plot the mean profiles
+ggplot(RATSS, aes(x = Time, y = mean, linetype = Group, shape = Group)) +
+  geom_line() +
+  scale_linetype_manual(values = c(1,2,3)) +
+  geom_point(size=3) +
+  scale_shape_manual(values = c(1,2,3)) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, linetype="1"), width=0.3) +
+  theme(legend.position = c(0.8,0.8)) +
+  scale_y_continuous(name = "mean(Weight) +/- se(weight)")+
+  theme_minimal()
+```
+
+The plot above describes the average weight (and sd) of rat by group. Clearly there are differences in the point group means but this is not sufficient evidence that different diets lead to significant differences in weights as the sd are so large. Lets then check whether there is outliers using box-plots:
+
+### Box-plots
+
+```{r}
+# Create a summary data by treatment and ID with mean as the summary variable (ignoring baseline week 0)
+RATSL8S <- RATSL %>%
+  filter(Time > 1) %>% # Drop the first week
+  group_by(Group, ID) %>%
+  summarise( mean=mean(Weight) ) %>%
+  ungroup()
+
+
+# Draw a boxplot of the mean versus treatment
+ggplot(RATSL8S, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(Weight), Day 8-64")+
+  theme_minimal()
+
+```
+
+From the box plot above we see that each group has single outlier rats, which weight differ substantially from the other rats in the group. 
+
+
+```{r}
+# Create a new data by filtering the outliers from each group so that they don't get too much weight later
+RATSL8S1 <- RATSL %>% 
+  filter(Time > 1) %>%
+  group_by(Group, ID) %>%
+  summarise( mean=mean(Weight) ) %>%
+  ungroup() %>% 
+  filter(!(mean < 250 & Group=="1")) %>% 
+  filter(!(mean > 550 & Group =="2")) %>% 
+  filter(!(mean < 500 & Group=="3"))
+
+# Draw a boxplot of the mean versus treatment
+ggplot(RATSL8S1, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(Weight), Day 8-64")+
+  theme_minimal()
+
+
+```
+
+Now we see no outliers. The box plot suggests that means are different for the groups. Lets not settle to this but continue to test the difference of the means using anova.
+
+### Anova
+
+```{r}
+#Add baseline
+RATSL8S2 <- RATSL8S %>% 
+  mutate(baseline=RATS$WD1)
+
+fit <- lm(mean ~ baseline + Group, data = RATSL8S2)
+anova(fit)
+
+```
+
+P-value of the F-statistic equals 0.07, which is larger than the standard significance level 0.05. This means that we cannot reject the null hypothesis that the group means are equal. 
+
+
+
+## Part II: BRLS - the brief psychiatric rating scale 
+
+
+```{r}
+#Read the data
+BPRSL <- read_rds("~/Desktop/Introduction to Open Data Science/IODS-project/data/bprs.rds")
+```
+
+### Plotting lines :)
+
+```{r}
+ggplot(BPRSL,aes(x=week,y=bprs,color=subject))+
+  geom_line()+
+  facet_grid(~treatment,labeller = label_both)+
+  theme_minimal()
+```
+
+Plot above shows bprs for individuals through the treatment weeks by treatment. It seems like a total mess.
+
+
+### Linear model with independence assumption
+
+Start analysis first using the assumption of independence
+
+```{r}
+BPRSL_reg <- lm(formula = bprs ~ week + treatment, data=BPRSL)
+summary(BPRSL_reg)
+```
+
+Result above suggests that treatment 2 does not affect bprs compared to treatment 1 at any common significance levels. The estimation above essentially assumes independence of the observations. This is not realistic as the data includes multiple observations from same individuals. Use next the random intercept (effects) model.
+
+### The random intercept model
+```{r}
+library(lme4)
+
+#Run the random intercept model
+BPRSL_ref <- lmer( bprs ~ week + treatment + (1|subject) , data=BPRSL, REML = FALSE)
+
+#Print the summary
+summary(BPRSL_ref)
+```
+
+
+Clearly standard errors for week and treatment is smaller compared to to linear model above. However the conclusion does not change. Again we cannot reject the null hypothesis for the t-test. Lets then test whether including random slope affects the results. 
+
+### The random intercept and random slope model
+
+
+```{r}
+
+#Run the random intercept model
+BPRSL_ref1 <- lmer( bprs ~ week + treatment + (week|subject) , data=BPRSL, REML = FALSE)
+
+#Print the summary
+summary(BPRSL_ref1)
+
+#Anova test on the two models
+anova(BPRSL_ref1,BPRSL_ref)
+
+```
+
+A chi-squared statistic of 7.2721 with 2 degrees of freedom with associated p-value of 0.02636 suggests that the model with random slope produces better fit than the model with only random intercept. Lets next check whether we can improve even further by including interaction terms with treatment and week.
+
+### Random Intercept and Random Slope Model with interaction
+
+```{r}
+#Run model with interactions
+BPRSL_ref2 <- lmer( bprs ~ week + treatment + week*treatment + (week|subject) , data=BPRSL, REML = FALSE)
+
+summary(BPRSL_ref2)
+
+
+#Anova test on the interaction and without interactions models
+anova(BPRSL_ref2,BPRSL_ref1)
+
+```
+
+The likelihood ratio test of the model with interaction against the model without an interaction is 3.1712 with 1 DF. The associated p-value is not that small, 0.07. But with such a small data set lets go ahead and conclude that the model with interactions is better. 
+
+Finally lets plot the fitted values:
+
+```{r}
+# Create a vector of the fitted values
+BPRSL$Fitted <- predict(object = BPRSL_ref2)
+
+# draw the plot of RATSL with the Fitted values of weight
+ggplot(BPRSL, aes(x = week, y = Fitted, color = subject)) +
+  geom_line() +
+  facet_grid(~treatment,labeller = label_both)+
+  scale_x_continuous(name = "Time (weeks)", breaks = seq(0, 8, 2)) +
+  scale_y_continuous(name = "Fitted bprs") +
+  theme(legend.position = "top")
+
+```
+
+**Thanks for reading / grading! :-) Happy holidays!!!!**
+
